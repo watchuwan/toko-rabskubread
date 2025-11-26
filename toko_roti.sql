@@ -3,8 +3,8 @@
 -- PostgreSQL Version untuk Laravel
 -- Payment Gateway: Midtrans & COD Only
 
--- Tabel: pengguna
-CREATE TABLE pengguna (
+-- Tabel: pelanggan
+CREATE TABLE pelanggan (
     id BIGSERIAL PRIMARY KEY,
     nama VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -12,15 +12,15 @@ CREATE TABLE pengguna (
     password VARCHAR(255) NOT NULL,
     telepon VARCHAR(20),
     tanggal_lahir DATE,
-    jenis_kelamin VARCHAR(20) CHECK (jenis_kelamin IN ('laki-laki', 'perempuan', 'lainnya')),
+    jenis_kelamin VARCHAR(20) CHECK (jenis_kelamin IN ('laki-laki', 'perempuan')),
     foto_profil VARCHAR(255),
     remember_token VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX idx_pengguna_email ON pengguna(email);
-CREATE INDEX idx_pengguna_telepon ON pengguna(telepon);
+CREATE INDEX idx_pelanggan_email ON pelanggan(email);
+CREATE INDEX idx_pelanggan_telepon ON pelanggan(telepon);
 
 -- Tabel: kategori
 CREATE TABLE kategori (
@@ -74,13 +74,13 @@ CREATE INDEX idx_gambar_produk_produk_id ON gambar_produk(produk_id);
 -- Tabel: keranjang
 CREATE TABLE keranjang (
     id BIGSERIAL PRIMARY KEY,
-    pengguna_id BIGINT NOT NULL,
+    pelanggan_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (pengguna_id) REFERENCES pengguna(id) ON DELETE CASCADE
+    FOREIGN KEY (pelanggan_id) REFERENCES pelanggan(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_keranjang_pengguna_id ON keranjang(pengguna_id);
+CREATE INDEX idx_keranjang_pelanggan_id ON keranjang(pelanggan_id);
 
 -- Tabel: item_keranjang
 CREATE TABLE item_keranjang (
@@ -101,7 +101,7 @@ CREATE INDEX idx_item_keranjang_produk_id ON item_keranjang(produk_id);
 -- Tabel: alamat
 CREATE TABLE alamat (
     id BIGSERIAL PRIMARY KEY,
-    pengguna_id BIGINT NOT NULL,
+    pelanggan_id BIGINT NOT NULL,
     label VARCHAR(100) NOT NULL,
     nama_penerima VARCHAR(255) NOT NULL,
     telepon VARCHAR(20) NOT NULL,
@@ -112,10 +112,10 @@ CREATE TABLE alamat (
     alamat_utama BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (pengguna_id) REFERENCES pengguna(id) ON DELETE CASCADE
+    FOREIGN KEY (pelanggan_id) REFERENCES pelanggan(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_alamat_pengguna_id ON alamat(pengguna_id);
+CREATE INDEX idx_alamat_pelanggan_id ON alamat(pelanggan_id);
 CREATE INDEX idx_alamat_alamat_utama ON alamat(alamat_utama);
 
 COMMENT ON COLUMN alamat.label IS 'Contoh: Rumah, Kantor, Kos';
@@ -123,7 +123,7 @@ COMMENT ON COLUMN alamat.label IS 'Contoh: Rumah, Kantor, Kos';
 -- Tabel: pesanan
 CREATE TABLE pesanan (
     id BIGSERIAL PRIMARY KEY,
-    pengguna_id BIGINT NOT NULL,
+    pelanggan_id BIGINT NOT NULL,
     alamat_id BIGINT NOT NULL,
     nomor_pesanan VARCHAR(50) NOT NULL UNIQUE,
     subtotal DECIMAL(15, 2) NOT NULL,
@@ -133,11 +133,11 @@ CREATE TABLE pesanan (
     catatan TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (pengguna_id) REFERENCES pengguna(id) ON DELETE CASCADE,
+    FOREIGN KEY (pelanggan_id) REFERENCES pelanggan(id) ON DELETE CASCADE,
     FOREIGN KEY (alamat_id) REFERENCES alamat(id) ON DELETE RESTRICT
 );
 
-CREATE INDEX idx_pesanan_pengguna_id ON pesanan(pengguna_id);
+CREATE INDEX idx_pesanan_pelanggan_id ON pesanan(pelanggan_id);
 CREATE INDEX idx_pesanan_nomor_pesanan ON pesanan(nomor_pesanan);
 CREATE INDEX idx_pesanan_status ON pesanan(status);
 CREATE INDEX idx_pesanan_created_at ON pesanan(created_at);
@@ -215,7 +215,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger untuk semua tabel
-CREATE TRIGGER update_pengguna_updated_at BEFORE UPDATE ON pengguna FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_pelanggan_updated_at BEFORE UPDATE ON pelanggan FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_kategori_updated_at BEFORE UPDATE ON kategori FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_produk_updated_at BEFORE UPDATE ON produk FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_gambar_produk_updated_at BEFORE UPDATE ON gambar_produk FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -240,9 +240,9 @@ INSERT INTO kategori (nama, slug, deskripsi, aktif) VALUES
 ('Kue Basah', 'kue-basah', 'Kue basah tradisional dan modern', TRUE),
 ('Cake', 'cake', 'Kue ulang tahun dan kue tart', TRUE);
 
--- Insert data contoh pengguna (password: password123)
+-- Insert data contoh pelanggan (password: password123)
 -- Hash dibuat dengan bcrypt
-INSERT INTO pengguna (nama, email, password, telepon, jenis_kelamin, email_verified_at) VALUES
+INSERT INTO pelanggan (nama, email, password, telepon, jenis_kelamin, email_verified_at) VALUES
 ('Budi Santoso', 'budi@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '081234567890', 'laki-laki', CURRENT_TIMESTAMP),
 ('Siti Aminah', 'siti@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '081234567891', 'perempuan', CURRENT_TIMESTAMP),
 ('Andi Wijaya', 'andi@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '081234567892', 'laki-laki', CURRENT_TIMESTAMP);
@@ -256,7 +256,7 @@ INSERT INTO produk (kategori_id, nama, slug, deskripsi, harga, stok, sku, aktif)
 (5, 'Blackforest Cake', 'blackforest-cake', 'Kue blackforest dengan cherry import', 250000, 10, 'CAKE-001', TRUE);
 
 -- Insert data contoh alamat
-INSERT INTO alamat (pengguna_id, label, nama_penerima, telepon, alamat, kota, provinsi, kode_pos, alamat_utama) VALUES
+INSERT INTO alamat (pelanggan_id, label, nama_penerima, telepon, alamat, kota, provinsi, kode_pos, alamat_utama) VALUES
 (1, 'Rumah', 'Budi Santoso', '081234567890', 'Jl. Merdeka No. 123', 'Jakarta Pusat', 'DKI Jakarta', '10110', TRUE),
 (2, 'Kantor', 'Siti Aminah', '081234567891', 'Jl. Sudirman No. 456', 'Jakarta Selatan', 'DKI Jakarta', '12190', TRUE),
 (3, 'Rumah', 'Andi Wijaya', '081234567892', 'Jl. Gatot Subroto No. 789', 'Bandung', 'Jawa Barat', '40262', TRUE);
