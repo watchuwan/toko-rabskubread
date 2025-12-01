@@ -115,21 +115,21 @@ class PenggunaResource extends Resource
                             ->columnSpanFull()
                             ->searchable()
                             ->label('Peran & Hak Akses')
-                            ->options(function () {
-                                $user = Filament::auth()->user();
+                            // ->options(function () {
+                            //     $user = Filament::auth()->user();
 
-                                if ($user->hasRole('super_admin')) {
-                                    // Super admin lihat semua role
-                                    return Peran::pluck('name', 'id');
-                                }
+                            //     if ($user->hasRole('super_admin')) {
+                            //         // Super admin lihat semua role
+                            //         return Peran::pluck('name', 'id');
+                            //     }
 
-                                if ($user->hasRole('admin')) {
-                                    // Admin lihat semua kecuali super_admin
-                                    return Peran::where('name', '!=', 'super_admin')->pluck('name', 'id');
-                                }
+                            //     if ($user->hasRole('admin')) {
+                            //         // Admin lihat semua kecuali super_admin
+                            //         return Peran::where('name', '!=', 'super_admin')->pluck('name', 'id');
+                            //     }
 
-                                return [];
-                            })
+                            //     return [];
+                            // })
                             ->visible(fn() => Filament::auth()->user()?->hasAnyRole(['super_admin', 'admin'])),
                     ])->columns(2)->columnSpanFull()
 
