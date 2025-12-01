@@ -11,7 +11,7 @@ use Filament\Forms\Components\TextInput;
 use Illuminate\Validation\ValidationException;
 use SensitiveParameter;
 
-class Login extends PagesLogin
+class CustomLogin extends PagesLogin
 {
 
     public function form(Schema $schema): Schema
