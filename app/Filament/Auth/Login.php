@@ -27,7 +27,7 @@ class Login extends PagesLogin
         protected function getLoginFormComponent(): Component
     {
         return TextInput::make('login')
-            ->label(__('Nama / Alamat Email'))
+            ->label(__('Nama / Alamat'))
             ->required()
             ->autocomplete()
             ->autofocus()
