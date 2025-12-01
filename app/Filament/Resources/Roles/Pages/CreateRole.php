@@ -13,14 +13,13 @@ use Illuminate\Support\Collection;
 class CreateRole extends CreateRecord
 {
     protected static string $resource = RoleResource::class;
-    protected static bool $canCreateAnother = false;
 
     public Collection $permissions;
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $this->permissions = collect($data)
-            ->filter(fn(mixed $permission, string $key): bool => !in_array($key, ['name', 'guard_name', 'select_all', Utils::getTenantModelForeignKey()]))
+            ->filter(fn (mixed $permission, string $key): bool => ! in_array($key, ['name', 'guard_name', 'select_all', Utils::getTenantModelForeignKey()]))
             ->values()
             ->flatten()
             ->unique();
