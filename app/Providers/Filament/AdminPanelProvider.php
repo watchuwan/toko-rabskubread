@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Actions\CreateAction;
 use Filament\Http\Middleware\Authenticate;
@@ -36,7 +37,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->brandName('Toko Rabskubread')
             ->path('admin')
-            ->login()
+            ->login(\App\Filament\Auth\Login::class)
             ->colors([
                 'primary' => Color::Pink,
             ])
