@@ -40,7 +40,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(CustomLogin::class)
             ->colors([
-                'primary' => Color::Pink,
+                'primary' => Color::Zinc,
             ])
             ->resourceEditPageRedirect('index')
             ->resourceCreatePageRedirect('index')
