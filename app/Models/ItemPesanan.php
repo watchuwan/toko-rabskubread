@@ -14,6 +14,8 @@ class ItemPesanan extends Model
         'nama_produk',
         'jumlah',
         'harga',
+        'harga_asli',
+        'diskon_item',
         'subtotal',
     ];
 
@@ -22,6 +24,8 @@ class ItemPesanan extends Model
         return [
             'jumlah' => 'integer',
             'harga' => 'decimal:2',
+            'harga_asli' => 'decimal:2',
+            'diskon_item' => 'decimal:2',
             'subtotal' => 'decimal:2',
         ];
     }

@@ -27,7 +27,7 @@ class Keranjang extends Model
     public function totalHarga()
     {
         return $this->items->sum(function ($item) {
-            return $item->harga * $item->jumlah;
+            return (float) $item->harga * $item->jumlah;
         });
     }
 

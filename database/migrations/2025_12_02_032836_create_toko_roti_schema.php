@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 return new class extends Migration {
     /**
@@ -10,6 +11,7 @@ return new class extends Migration {
      */
     public function up()
     {
+        // Tabel pelanggan
         Schema::create('pelanggan', function (Blueprint $table) {
             $table->id();
             $table->string('nama');
@@ -125,13 +127,82 @@ return new class extends Migration {
             $table->index('alamat_utama', 'idx_alamat_alamat_utama');
         });
 
-        // Tabel pesanan
+        // ==================== TABEL KUPON & DISKON ====================
+        
+        // Tabel kupon/voucher
+        Schema::create('kupon', function (Blueprint $table) {
+            $table->id();
+            $table->string('kode', 50)->unique();
+            $table->enum('tipe', ['fixed', 'percent']); // fixed amount atau persen
+            $table->decimal('nilai', 15, 2); // nilai diskon
+            $table->decimal('min_belanja', 15, 2)->default(0); // minimal belanja
+            $table->decimal('max_diskon', 15, 2)->nullable(); // max potongan (untuk percent)
+            $table->integer('batas_penggunaan')->nullable(); // total limit
+            $table->integer('jumlah_terpakai')->default(0); // sudah terpakai berapa kali
+            $table->integer('batas_per_pelanggan')->default(1); // limit per user
+            $table->date('mulai_berlaku');
+            $table->date('berakhir');
+            $table->boolean('aktif')->default(true);
+            $table->text('deskripsi')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::table('kupon', function (Blueprint $table) {
+            $table->index('kode', 'idx_kupon_kode');
+            $table->index('aktif', 'idx_kupon_aktif');
+            $table->index(['mulai_berlaku', 'berakhir'], 'idx_kupon_periode');
+        });
+
+        // Tabel diskon produk (flash sale, promo khusus produk)
+        Schema::create('diskon_produk', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('produk_id')->constrained('produk')->onDelete('cascade');
+            $table->enum('tipe', ['fixed', 'percent']);
+            $table->decimal('nilai', 15, 2);
+            $table->date('mulai_berlaku');
+            $table->date('berakhir');
+            $table->boolean('aktif')->default(true);
+            $table->string('label', 100)->nullable(); // "Flash Sale", "Promo Spesial", dll
+            $table->timestamps();
+        });
+
+        Schema::table('diskon_produk', function (Blueprint $table) {
+            $table->index('produk_id', 'idx_diskon_produk_produk_id');
+            $table->index('aktif', 'idx_diskon_produk_aktif');
+            $table->index(['mulai_berlaku', 'berakhir'], 'idx_diskon_produk_periode');
+        });
+
+        // Tabel diskon kategori
+        Schema::create('diskon_kategori', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('kategori_id')->constrained('kategori')->onDelete('cascade');
+            $table->enum('tipe', ['fixed', 'percent']);
+            $table->decimal('nilai', 15, 2);
+            $table->date('mulai_berlaku');
+            $table->date('berakhir');
+            $table->boolean('aktif')->default(true);
+            $table->string('label', 100)->nullable();
+            $table->timestamps();
+        });
+
+        Schema::table('diskon_kategori', function (Blueprint $table) {
+            $table->index('kategori_id', 'idx_diskon_kategori_kategori_id');
+            $table->index('aktif', 'idx_diskon_kategori_aktif');
+            $table->index(['mulai_berlaku', 'berakhir'], 'idx_diskon_kategori_periode');
+        });
+
+        // ==================== TABEL PESANAN (Updated) ====================
+        
+        // Tabel pesanan (dengan kolom diskon)
         Schema::create('pesanan', function (Blueprint $table) {
             $table->id();
             $table->foreignId('pelanggan_id')->constrained('pelanggan')->onDelete('cascade');
             $table->foreignId('alamat_id')->constrained('alamat')->onDelete('restrict');
+            $table->foreignId('kupon_id')->nullable()->constrained('kupon')->onDelete('set null');
             $table->string('nomor_pesanan', 50)->unique();
             $table->decimal('subtotal', 15, 2);
+            $table->decimal('diskon_kupon', 15, 2)->default(0);
+            $table->decimal('diskon_produk', 15, 2)->default(0);
             $table->decimal('biaya_ongkir', 15, 2)->default(0);
             $table->decimal('total_bayar', 15, 2);
             $table->enum('status', ['menunggu', 'diproses', 'dikirim', 'selesai', 'dibatalkan'])->default('menunggu');
@@ -141,9 +212,26 @@ return new class extends Migration {
 
         Schema::table('pesanan', function (Blueprint $table) {
             $table->index('pelanggan_id', 'idx_pesanan_pelanggan_id');
+            $table->index('kupon_id', 'idx_pesanan_kupon_id');
             $table->index('nomor_pesanan', 'idx_pesanan_nomor_pesanan');
             $table->index('status', 'idx_pesanan_status');
             $table->index('created_at', 'idx_pesanan_created_at');
+        });
+
+        // Tabel penggunaan kupon (history)
+        Schema::create('penggunaan_kupon', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('kupon_id')->constrained('kupon')->onDelete('cascade');
+            $table->foreignId('pelanggan_id')->constrained('pelanggan')->onDelete('cascade');
+            $table->foreignId('pesanan_id')->constrained('pesanan')->onDelete('cascade');
+            $table->decimal('nilai_diskon', 15, 2); // nilai diskon yang dipakai
+            $table->timestamps();
+        });
+
+        Schema::table('penggunaan_kupon', function (Blueprint $table) {
+            $table->index('kupon_id', 'idx_penggunaan_kupon_kupon_id');
+            $table->index('pelanggan_id', 'idx_penggunaan_kupon_pelanggan_id');
+            $table->index('pesanan_id', 'idx_penggunaan_kupon_pesanan_id');
         });
 
         // Tabel item_pesanan
@@ -154,6 +242,8 @@ return new class extends Migration {
             $table->string('nama_produk');
             $table->integer('jumlah');
             $table->decimal('harga', 15, 2);
+            $table->decimal('harga_asli', 15, 2)->nullable(); // harga sebelum diskon
+            $table->decimal('diskon_item', 15, 2)->default(0); // diskon per item
             $table->decimal('subtotal', 15, 2);
             $table->timestamps();
         });
@@ -201,6 +291,8 @@ return new class extends Migration {
             $table->index('id_transaksi_midtrans', 'idx_pembayaran_id_transaksi_midtrans');
             $table->index('snap_token', 'idx_pembayaran_snap_token');
         });
+
+        // ==================== SAMPLE DATA ====================
 
         // Sample insert: metode_pembayaran
         DB::table('metode_pembayaran')->insert([
@@ -373,6 +465,99 @@ return new class extends Migration {
                 'updated_at' => now()
             ]
         ]);
+
+        // Sample insert: kupon
+        DB::table('kupon')->insert([
+            [
+                'kode' => 'WELCOME10',
+                'tipe' => 'percent',
+                'nilai' => 10,
+                'min_belanja' => 50000,
+                'max_diskon' => 20000,
+                'batas_penggunaan' => 100,
+                'jumlah_terpakai' => 0,
+                'batas_per_pelanggan' => 1,
+                'mulai_berlaku' => now()->toDateString(),
+                'berakhir' => now()->addDays(30)->toDateString(),
+                'aktif' => true,
+                'deskripsi' => 'Diskon 10% untuk pelanggan baru (max Rp 20.000)',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'kode' => 'HEMAT50K',
+                'tipe' => 'fixed',
+                'nilai' => 50000,
+                'min_belanja' => 200000,
+                'max_diskon' => null,
+                'batas_penggunaan' => 50,
+                'jumlah_terpakai' => 0,
+                'batas_per_pelanggan' => 2,
+                'mulai_berlaku' => now()->toDateString(),
+                'berakhir' => now()->addDays(60)->toDateString(),
+                'aktif' => true,
+                'deskripsi' => 'Potongan Rp 50.000 untuk belanja min Rp 200.000',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'kode' => 'FLASHSALE20',
+                'tipe' => 'percent',
+                'nilai' => 20,
+                'min_belanja' => 0,
+                'max_diskon' => 50000,
+                'batas_penggunaan' => 30,
+                'jumlah_terpakai' => 0,
+                'batas_per_pelanggan' => 1,
+                'mulai_berlaku' => now()->toDateString(),
+                'berakhir' => now()->addDays(7)->toDateString(),
+                'aktif' => true,
+                'deskripsi' => 'Flash Sale 20% (max Rp 50.000)',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        ]);
+
+        // Sample insert: diskon produk
+        DB::table('diskon_produk')->insert([
+            [
+                'produk_id' => 1, // Roti Coklat Keju
+                'tipe' => 'percent',
+                'nilai' => 15,
+                'mulai_berlaku' => now()->toDateString(),
+                'berakhir' => now()->addDays(14)->toDateString(),
+                'aktif' => true,
+                'label' => 'Flash Sale',
+                'created_at' => now(),
+                'updated_at' => now()
+            ],
+            [
+                'produk_id' => 5, // Blackforest Cake
+                'tipe' => 'fixed',
+                'nilai' => 30000,
+                'mulai_berlaku' => now()->toDateString(),
+                'berakhir' => now()->addDays(30)->toDateString(),
+                'aktif' => true,
+                'label' => 'Promo Spesial',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        ]);
+
+        // Sample insert: diskon kategori
+        DB::table('diskon_kategori')->insert([
+            [
+                'kategori_id' => 3, // Kue Kering
+                'tipe' => 'percent',
+                'nilai' => 10,
+                'mulai_berlaku' => now()->toDateString(),
+                'berakhir' => now()->addDays(30)->toDateString(),
+                'aktif' => true,
+                'label' => 'Promo Kue Kering',
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        ]);
     }
 
     public function down()
@@ -383,7 +568,11 @@ return new class extends Migration {
             'pembayaran',
             'metode_pembayaran',
             'item_pesanan',
+            'penggunaan_kupon',
             'pesanan',
+            'diskon_kategori',
+            'diskon_produk',
+            'kupon',
             'alamat',
             'item_keranjang',
             'keranjang',

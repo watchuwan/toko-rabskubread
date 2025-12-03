@@ -37,6 +37,6 @@ class ItemKeranjang extends Model
     // Helper Methods
     public function subtotal()
     {
-        return $this->harga * $this->jumlah;
+        return (float) $this->harga * $this->jumlah;
     }
 }

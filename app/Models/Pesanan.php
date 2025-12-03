@@ -11,8 +11,11 @@ class Pesanan extends Model
     protected $fillable = [
         'pelanggan_id',
         'alamat_id',
+        'kupon_id',
         'nomor_pesanan',
         'subtotal',
+        'diskon_kupon',
+        'diskon_produk',
         'biaya_ongkir',
         'total_bayar',
         'status',
@@ -23,6 +26,8 @@ class Pesanan extends Model
     {
         return [
             'subtotal' => 'decimal:2',
+            'diskon_kupon' => 'decimal:2',
+            'diskon_produk' => 'decimal:2',
             'biaya_ongkir' => 'decimal:2',
             'total_bayar' => 'decimal:2',
         ];
@@ -37,6 +42,11 @@ class Pesanan extends Model
     public function alamat()
     {
         return $this->belongsTo(Alamat::class);
+    }
+
+    public function kupon()
+    {
+        return $this->belongsTo(Kupon::class);
     }
 
     public function items()

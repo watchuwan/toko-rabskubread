@@ -3,14 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Sluggable\HasSlug;
+use Spatie\Sluggable\SlugOptions;
 
 class Produk extends Model
 {
+
+    use HasSlug;
     protected $table = 'produk';
 
     protected $fillable = [
         'kategori_id',
-        'nama',
+        'nama', 
         'slug',
         'deskripsi',
         'harga',
@@ -28,6 +32,12 @@ class Produk extends Model
         ];
     }
 
+        public function getSlugOptions(): SlugOptions
+    {
+        return SlugOptions::create()
+            ->generateSlugsFrom('nama')
+            ->saveSlugsTo('slug');
+    }
     // Relationships
     public function kategori()
     {
@@ -54,6 +64,22 @@ class Produk extends Model
         return $this->hasMany(ItemPesanan::class);
     }
 
+    public function diskonAktif()
+    {
+        return $this->hasOne(DiskonProduk::class)->aktif();
+    }
+
+    public function hargaSetelahDiskon()
+    {
+        $diskon = $this->diskonAktif;
+
+        if (!$diskon) {
+            return $this->harga;
+        }
+
+        return $diskon->hitungHargaDiskon($this->harga);
+    }
+
     // Scopes
     public function scopeAktif($query)
     {
@@ -64,4 +90,6 @@ class Produk extends Model
     {
         return $query->where('aktif', true)->where('stok', '>', 0);
     }
+
+
 }
