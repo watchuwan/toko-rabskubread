@@ -17,10 +17,13 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use UnitEnum;
 
 class ProdukResource extends Resource
 {
     protected static ?string $model = Produk::class;
+
+    protected static string | UnitEnum | null $navigationGroup = 'Manajemen Toko';
 
     protected static ?string $modelLabel = 'Produk';
     protected static ?string $pluralModelLabel = 'Produk';
