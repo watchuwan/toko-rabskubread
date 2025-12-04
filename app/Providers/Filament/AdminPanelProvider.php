@@ -51,7 +51,7 @@ class AdminPanelProvider extends PanelProvider
                 $action->color(Color::Red);
                 $action->button();
             });
-            
+
 
         });
         return $panel
@@ -70,9 +70,18 @@ class AdminPanelProvider extends PanelProvider
                 'view' => Color::Amber,
                 'produk' => Color::Teal,
                 'gambar' => Color::Sky,
+                'preview' => Color::Indigo,
             ])
             ->resourceEditPageRedirect('index')
-            ->resourceCreatePageRedirect('edit')
+            ->resourceCreatePageRedirect('index')
+            ->navigationGroups([
+                'Master Data',
+                'Manajemen Toko',
+                'Manajemen Produk',
+                'Manajemen Adminstrator',
+
+            ])
+
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
