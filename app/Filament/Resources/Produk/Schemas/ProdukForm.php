@@ -8,6 +8,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Tabs;
 use Filament\Schemas\Schema;
 use Filament\Schemas\Components\Tabs\Tab;
@@ -34,7 +35,45 @@ class ProdukForm
                                     ->columnSpanFull()
                                     ->relationship('kategori', 'nama')
                                     ->preload()
-                                    ->required(),
+                                    ->searchable()
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, callable $set) {
+                                        if ($state) {
+                                            $kategori = \App\Models\Kategori::find($state);
+
+                                            if ($kategori && $kategori->sku_prefix) {
+                                                // Auto set prefix dari kategori
+                                                $prefix = $kategori->sku_prefix;
+                                                $set('sku_prefix', $prefix);
+
+                                                // Auto generate SKU
+                                                $count = \App\Models\Produk::where('sku', 'like', $prefix . '-%')->count();
+                                                $nextNumber = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
+                                                $set('sku', $prefix . '-' . $nextNumber);
+                                            }
+                                        }
+                                    })
+                                    ->createOptionForm([
+                                        TextInput::make('nama')
+                                            ->label('Nama Kategori')
+                                            ->required()
+                                            ->maxLength(255),
+
+                                        TextInput::make('sku_prefix')
+                                            ->label('Prefix SKU')
+                                            ->required()
+                                            ->maxLength(10)
+                                            ->placeholder('RTI, KUE, SNK')
+                                            ->helperText('Prefix untuk generate SKU produk (3-10 karakter)')
+                                            ->reactive()
+                                            ->afterStateUpdated(fn($state, callable $set) =>
+                                                $set('sku_prefix', strtoupper($state))),
+
+                                        Textarea::make('deskripsi')
+                                            ->label('Deskripsi')
+                                            ->rows(3),
+                                    ]),
                                 TextInput::make('nama')
                                     ->required(),
                                 TextInput::make('slug')
@@ -43,30 +82,53 @@ class ProdukForm
                                     ->required()
                                     ->numeric()
                                     ->default(0),
+                                TextInput::make('harga')
+                                    ->prefix('Rp. ')
+                                    ->numeric()
+                                    ->required(),
+                                Select::make('sku_prefix')
+                                    ->label('Prefix SKU')
+                                    ->options(function () {
+                                        // Ambil semua kategori yang punya sku_prefix
+                                        return \App\Models\Kategori::whereNotNull('sku_prefix')
+                                            ->get()
+                                            ->mapWithKeys(fn($kategori) => [
+                                                $kategori->sku_prefix => $kategori->sku_prefix . ' - ' . $kategori->nama
+                                            ])
+                                            ->toArray();
+                                    })
+
+                                    ->required()
+                                    ->searchable()
+                                    ->native(false)
+                                    ->helperText('Otomatis dari kategori yang dipilih')
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, callable $set) {
+                                        if ($state) {
+                                            // Hitung produk dengan prefix ini
+                                            $count = \App\Models\Produk::where('sku', 'like', $state . '-%')->count();
+
+                                            // Nomor berikutnya
+                                            $nextNumber = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
+
+                                            $set('sku', strtoupper($state) . '-' . $nextNumber);
+                                        }
+                                    }),
+
                                 TextInput::make('sku')
                                     ->label('SKU')
                                     ->required()
-                                    ->readOnly()
                                     ->unique(ignoreRecord: true)
-                                    ->default(function () {
-                                        // Auto generate: PRD-timestamp-random
-                                        return 'RTI-' . str_pad(
-                                            \App\Models\Produk::max('id') + 1,
-                                            3,
-                                            '0',
-                                            STR_PAD_LEFT
-                                        );
-                                    }),
-                                TextInput::make('harga')
-                                    ->required()
-                                    ->numeric(),
+                                    ->readOnly()
+                                    ->helperText('Otomatis: PREFIX-XXX')
+                                    ->columnSpan(2),
                                 Textarea::make('deskripsi')
                                     ->columnSpanFull(),
                                 Toggle::make('aktif')
                                     ->default(true)
                                     ->onColor('success')
                                     ->required(),
-                            ])->columns(4)->columnSpanFull(),
+                            ])->columns(3)->columnSpanFull(),
                         Tab::make('Informasi Gambar Produk')
                             ->badge('Gambar')
                             ->badgeColor('gambar')

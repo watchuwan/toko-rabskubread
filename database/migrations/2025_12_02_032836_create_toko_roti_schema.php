@@ -36,6 +36,7 @@ return new class extends Migration {
             $table->id();
             $table->string('nama');
             $table->string('slug')->unique();
+            $table->string('sku_prefix')->nullable();
             $table->text('deskripsi')->nullable();
             $table->boolean('aktif')->default(true);
             $table->timestamps();

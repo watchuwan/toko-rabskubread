@@ -23,8 +23,16 @@ class ProdukResource extends Resource
 {
     protected static ?string $model = Produk::class;
 
-    protected static string | UnitEnum | null $navigationGroup = 'Manajemen Toko';
+    protected static string|UnitEnum|null $navigationGroup = 'Manajemen Toko';
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
 
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return static::getModel()::count() > 10 ? 'warning' : 'success';
+    }
     protected static ?string $modelLabel = 'Produk';
     protected static ?string $pluralModelLabel = 'Produk';
     protected static ?string $navigationLabel = 'Produk';

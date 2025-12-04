@@ -21,7 +21,16 @@ class PelangganResource extends Resource
 {
     protected static ?string $model = Pelanggan::class;
 
-        protected static string | UnitEnum | null $navigationGroup = 'Manajemen Toko';
+    protected static string|UnitEnum|null $navigationGroup = 'Manajemen Toko';
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+        public static function getNavigationBadgeColor(): ?string
+    {
+        return static::getModel()::count() < 10 ? 'info' : 'success';
+    }
     protected static ?string $modelLabel = 'Pelanggan';
     protected static ?string $pluralModelLabel = 'Pelanggan';
     protected static ?string $navigationLabel = 'Pelanggan';

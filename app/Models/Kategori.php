@@ -15,6 +15,7 @@ class Kategori extends Model
     protected $fillable = [
         'nama',
         'slug',
+        'sku_prefix',
         'deskripsi',
         'aktif',
     ];

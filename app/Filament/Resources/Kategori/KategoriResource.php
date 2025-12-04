@@ -22,7 +22,17 @@ class KategoriResource extends Resource
     protected static ?string $model = Kategori::class;
 
 
-protected static string | UnitEnum | null $navigationGroup = 'Master Data';
+    protected static string|UnitEnum|null $navigationGroup = 'Master Data';
+
+    public static function getNavigationBadge(): ?string
+    {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        return static::getModel()::count() < 10 ? 'info' : 'success';
+    }
     protected static ?string $modelLabel = 'Kategori';
     protected static ?string $pluralModelLabel = 'Kategori';
     protected static ?string $navigationLabel = 'Kategori';

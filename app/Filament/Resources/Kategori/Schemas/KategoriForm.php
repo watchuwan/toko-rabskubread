@@ -21,6 +21,9 @@ class KategoriForm
                             ->required(),
                         TextInput::make('slug')
                             ->hidden(),
+                            TextInput::make('sku_prefix')
+                            ->label('Prefix SKU')
+                            ->required(),
                         Textarea::make('deskripsi')
                             ->columnSpanFull(),
                         Toggle::make('aktif')

@@ -21,6 +21,9 @@ class KategorisTable
                     ->searchable(),
                 TextColumn::make('slug')
                     ->searchable(),
+                TextColumn::make('sku_prefix')
+                    ->label('Prefix SKU')
+                    ->searchable(),
                 IconColumn::make('aktif')
                     ->boolean(),
 

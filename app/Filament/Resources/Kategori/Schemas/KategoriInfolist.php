@@ -17,6 +17,7 @@ class KategoriInfolist
                     ->schema([
                         TextEntry::make('nama'),
                         TextEntry::make('slug'),
+                        TextEntry::make('sku_prefix'),
                         IconEntry::make('aktif')
                             ->boolean(),
                         TextEntry::make('deskripsi')
