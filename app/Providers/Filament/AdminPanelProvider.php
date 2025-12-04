@@ -68,6 +68,8 @@ class AdminPanelProvider extends PanelProvider
                 'edit' => Color::Blue,
                 'delete' => Color::Red,
                 'view' => Color::Amber,
+                'produk' => Color::Teal,
+                'gambar' => Color::Sky,
             ])
             ->resourceEditPageRedirect('index')
             ->resourceCreatePageRedirect('edit')
