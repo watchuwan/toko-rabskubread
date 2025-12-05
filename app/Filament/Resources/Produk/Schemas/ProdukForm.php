@@ -143,6 +143,7 @@ class ProdukForm
                                             ->label('Gambar')
                                             ->image()
                                             ->distinct()
+                                            ->disk(config('filesystems.default'))
                                             ->live(false)
                                             ->directory('produk-images'),
                                         TextInput::make('urutan')

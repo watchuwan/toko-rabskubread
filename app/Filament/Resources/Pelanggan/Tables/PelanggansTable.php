@@ -18,7 +18,7 @@ class PelanggansTable
         return $table
             ->columns([
                 ImageColumn::make('foto_profil')
-                    ->disk('public')
+                                                                            ->disk(config('filesystems.default'))
                     ->circular(),
                 TextColumn::make('nama')
                     ->searchable(),

@@ -71,6 +71,8 @@ class AdminPanelProvider extends PanelProvider
                 'produk' => Color::Teal,
                 'gambar' => Color::Sky,
                 'preview' => Color::Indigo,
+                'pelanggan' => Color::Emerald,
+                'alamat' => Color::Lime,
             ])
             ->resourceEditPageRedirect('index')
             ->resourceCreatePageRedirect('index')

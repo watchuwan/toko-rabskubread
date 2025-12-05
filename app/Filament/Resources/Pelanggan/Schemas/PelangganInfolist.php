@@ -16,7 +16,7 @@ class PelangganInfolist
                 Section::make('Detail Pelanggan')
                     ->schema([
                         ImageEntry::make('foto_profil')
-                            ->disk('public')
+                                                                                    ->disk(config('filesystems.default'))
                             ->height(80)
                             ->hiddenLabel()
                             ->circular()
@@ -39,6 +39,34 @@ class PelangganInfolist
                                 'laki-laki' => 'laki-laki',
                                 'perempuan' => 'perempuan',
                             }),
+                    ])->columns(4)->columnSpanFull(),
+
+                Section::make("Detail Alamat")
+                    ->schema([
+
+                        TextEntry::make('label')
+                            ->label('Label Alamat'),
+                            TextEntry::make('nama_penerima')
+                            ->label('Nama Penerima'),
+                        TextEntry::make('alamat_utama')
+                            ->label('Alamat Utama')
+                            ->badge()
+                            ->color(fn($state) => $state ? 'Utama' : 'Tambahan'),
+                        TextEntry::make('alamat_lengkap')
+                            ->label('Alamat Lengkap'),
+
+                        TextEntry::make('kota')
+                            ->label('Kota'),
+
+                        TextEntry::make('provinsi')
+                            ->label('Provinsi'),
+
+                        TextEntry::make('kode_pos')
+                            ->label('Kode Pos'),
+
+                        TextEntry::make('telepon')
+                            ->label('Nomor Telepon Penerima'),
+
                     ])->columns(4)->columnSpanFull(),
 
 
