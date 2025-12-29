@@ -36,7 +36,7 @@ class PelangganForm
                                     ->schema([
                                         FileUpload::make('foto_profil')
                                             ->image()
-                                                                                                                ->disk(config('filesystems.default'))
+                                            ->disk(config('filesystems.default'))
                                             ->distinct()
                                             ->directory('pelanggan-photos')
                                             ->columnSpanFull(),

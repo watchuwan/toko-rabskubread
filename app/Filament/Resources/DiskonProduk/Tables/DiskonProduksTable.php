@@ -24,12 +24,29 @@ class DiskonProduksTable
     {
         return $table
             ->columns([
-                TextColumn::make('produk.nama')
-                    ->sortable(),
                 TextColumn::make('tipe')
+                    ->badge()
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'percent' => 'Persentase',
+                        'fixed' => 'Nominal',
+                        default => $state,
+                    })
+                    ->color(fn(string $state): string => match ($state) {
+                        'percent' => 'success',
+                        'fixed' => 'info',
+                        default => 'gray',
+                    })
                     ->searchable(),
                 TextColumn::make('nilai')
                     ->numeric()
+                    ->badge()
+                    ->formatStateUsing(
+                        fn($state, $record) =>
+                        $record->tipe === 'percent'
+                        ? $state . '%'
+                        : 'Rp ' . number_format($state, 0, ',', '.')
+                    )
+                    ->color('primary')
                     ->sortable(),
                 TextColumn::make('mulai_berlaku')
                     ->date()

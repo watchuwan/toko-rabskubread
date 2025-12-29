@@ -37,7 +37,7 @@ class AdminPanelProvider extends PanelProvider
             CreateRecord::disableCreateAnother();
             CreateAction::configureUsing(function (CreateAction $action): void {
                 $action->createAnother(false);
-                $action->color(Color::Green);
+                // $action->color(Color::Green);
             });
             EditAction::configureUsing(function (EditAction $action): void {
                 $action->color(Color::Blue);
@@ -57,11 +57,11 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->brandName('Toko Rabskubread')
+            ->brandName('Rabskubread')
             ->path('admin')
             ->login(CustomLogin::class)
             ->colors([
-                'primary' => Color::Zinc,
+                'primary' => Color::Pink,
                 'laki-laki' => Color::Indigo,
                 'perempuan' => Color::Pink,
                 'cretae' => Color::Green,
@@ -73,6 +73,8 @@ class AdminPanelProvider extends PanelProvider
                 'preview' => Color::Indigo,
                 'pelanggan' => Color::Emerald,
                 'alamat' => Color::Lime,
+                'keranjang' => Color::Amber,
+                'itemkeranjang' => Color::Orange
             ])
             ->resourceEditPageRedirect('index')
             ->resourceCreatePageRedirect('index')
